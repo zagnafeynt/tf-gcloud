@@ -37,14 +37,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: terraform
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_version: latest
-
       - name: Run terraform fmt check
         run: terraform fmt -check
 
@@ -59,9 +51,6 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: latest
-      
-      - name: Run terraform init
-        run: terraform init
 
       - name: Run terraform validate
         run: terraform validate
