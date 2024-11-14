@@ -3,10 +3,10 @@ name: Terraform Workflow
 on:
   push:
     branches:
-      - testing  # You can change this to match the branch you want to trigger the workflow
+      - testing
   pull_request:
     branches:
-      - testing  # Same here for PR triggers
+      - testing
 
 jobs:
   terraform:
@@ -33,31 +33,48 @@ jobs:
       - name: Initialize Terraform
         run: terraform init
 
-  fmt:
-    runs-on: ubuntu-latest
-    needs: terraform
-    steps:
       - name: Run terraform fmt check
         run: terraform fmt -check
 
-  validate:
-    runs-on: ubuntu-latest
-    needs: fmt
-    steps:
       - name: Run terraform validate
         run: terraform validate
 
-  plan:
-    runs-on: ubuntu-latest
-    needs: validate
-    steps:
       - name: Run terraform plan
         run: terraform plan -out=tfplan
 
+      - name: Upload tfplan file as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: tfplan
+
   apply:
     runs-on: ubuntu-latest
-    needs: plan
+    needs: terraform
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Download tfplan artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: tfplan
+          path: .
+
+      - name: Decode Google Cloud credentials
+        run: echo "${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}" | base64 -d > service-account-key.json
+
+      - name: Set GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json" >> $GITHUB_ENV
+
+      - name: Initialize Terraform
+        run: terraform init
+
       - name: Run terraform apply
         run: terraform apply -auto-approve tfplan
 
@@ -66,5 +83,22 @@ jobs:
     needs: apply
     if: ${{ github.event_name == 'push' }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Decode Google Cloud credentials
+        run: echo "${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}" | base64 -d > service-account-key.json
+
+      - name: Set GOOGLE_APPLICATION_CREDENTIALS
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=service-account-key.json" >> $GITHUB_ENV
+
+      - name: Initialize Terraform
+        run: terraform init
+
       - name: Run terraform destroy
         run: terraform destroy -auto-approve
