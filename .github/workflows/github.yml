@@ -50,7 +50,7 @@ jobs:
 
   validate:
     runs-on: ubuntu-latest
-    needs: terraform
+    needs: fmt
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -65,7 +65,7 @@ jobs:
 
   plan:
     runs-on: ubuntu-latest
-    needs: terraform
+    needs: validate
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
