@@ -1,0 +1,74 @@
+# dummy commit2
+image: 
+  name: hashicorp/terraform:latest
+  entrypoint: [""]
+
+stages:
+  - validate
+  - fmt
+  - plan
+  - apply
+  - cleanup
+
+before_script:
+  - export TF_LOG=DEBUG
+  - export PROJECT_ID=${CI_PROJECT_ID}
+  - echo $GOOGLE_CLOUD_CREDENTIALS | base64 -d > service-account-key.json
+  - export GOOGLE_APPLICATION_CREDENTIALS="service-account-key.json"
+  - echo "GOOGLE_APPLICATION_CREDENTIALS is set to $GOOGLE_APPLICATION_CREDENTIALS"
+  - terraform init
+
+# Define reusable Terraform templates
+.terraform:fmt:
+  script:
+    - terraform fmt -check
+
+.terraform:validate:
+  script:
+    - terraform validate
+
+.terraform:build:
+  script:
+    - terraform plan -out=tfplan
+
+.terraform:deploy:
+  script:
+    - terraform apply -auto-approve tfplan
+
+.terraform:cleanup:
+  script:
+    - terraform destroy -auto-approve
+  when: manual
+
+# Jobs
+fmt:
+  extends: .terraform:fmt
+  stage: fmt
+
+validate:
+  extends: .terraform:validate
+  stage: validate
+
+build:
+  extends: .terraform:build
+  stage: plan
+  artifacts:
+    paths:
+      - tfplan
+    expire_in: 1 hour
+
+deploy:
+  extends: .terraform:deploy
+  stage: apply
+  dependencies:
+    - build
+  environment:
+    name: "testing"
+
+cleanup:
+  extends: .terraform:cleanup
+  stage: cleanup
+  dependencies:
+    - build
+  environment:
+    name: "testing"

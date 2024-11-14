@@ -1,0 +1,9 @@
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/providers/registry.terraform.io/hashicorp/google/6.10.0/windows_amd64/terraform-provider-google_v6.10.0_x5.exe
+.terraform/providers/registry.terraform.io/hashicorp/google/6.10.0/windows_amd64/LICENSE.txt
+.terraform.lock.hcl
+inlaid-backbone-439613-b9-12a6777ec4ce.json
+service-account-key.base64
+.terraform/providers/registry.terraform.io/hashicorp/random/3.6.3/windows_amd64/terraform-provider-random_v3.6.3_x5.exe
+.terraform/providers/registry.terraform.io/hashicorp/random/3.6.3/windows_amd64/LICENSE.txt
